@@ -1,0 +1,4 @@
+recursive-include wofrywise2 *.pyx
+recursive-include wofrywise2 *.py
+
+include README.txt
