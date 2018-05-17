@@ -1,4 +1,4 @@
-from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
+from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D, WavefrontDimension
 from wofry.propagator.decorators import WavefrontDecorator
 
 from wiselib2.Fundation import ComputationResults
@@ -6,10 +6,12 @@ from wiselib2.Fundation import ComputationResults
 class WiseWavefront(WavefrontDecorator):
 
     def __init__(self,
-                 wise_computation_result=ComputationResults()):
+                 wise_computation_results=ComputationResults()):
 
-        self.wise_computation_result = wise_computation_result
+        self.wise_computation_result = wise_computation_results
 
+    def get_dimension(self):
+        return WavefrontDimension.ONE
 
     def toGenericWavefront(self):
         wavelength = self.wise_computation_result.Lambda
@@ -25,4 +27,4 @@ class WiseWavefront(WavefrontDecorator):
         wise_computation_result.S = wavefront.get_abscissas()
         wise_computation_result.Field = wavefront.get_complex_amplitude()
 
-        return WiseWavefront(wise_computation_result=wise_computation_result)
+        return WiseWavefront(wise_computation_results=wise_computation_result)

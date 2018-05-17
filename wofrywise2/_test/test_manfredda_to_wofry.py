@@ -32,6 +32,7 @@ from numpy import *
 
 from wofry.propagator.propagator import PropagationElements, PropagationParameters, PropagationManager
 
+from wofrywise2.beamline.wise_beamline_element import WiseBeamlineElement
 from wofrywise2.beamline.light_sources.wise_gaussian_source import WiseGaussianSource
 from wofrywise2.beamline.optical_elements.wise_plane_mirror import WisePlaneMirror
 from wofrywise2.beamline.optical_elements.wise_elliptic_mirror import WiseEllipticMirror
@@ -88,7 +89,7 @@ if __name__ == '__main__':
     GrazingAngle = deg2rad(2.5)
     L = 0.4
 
-    ob = Optics.Obstruction()
+    #ob = Optics.Obstruction()
 
 
     kb_k = Optics.MirrorElliptic(f1 = f1, f2 = f2 , L= L, Alpha = GrazingAngle)
@@ -142,17 +143,17 @@ if __name__ == '__main__':
 
     beamline = PropagationElements()
 
-    beamline.add_beamline_element(s)
-    #beamline.add_beamline_element(pm1a)
-    beamline.add_beamline_element(kb)
-    beamline.add_beamline_element(d)
+    beamline.add_beamline_element(WiseBeamlineElement(optical_element=s))
+    #beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
+    beamline.add_beamline_element(WiseBeamlineElement(optical_element=kb))
+    beamline.add_beamline_element(WiseBeamlineElement(optical_element=d))
 
-    parameters = PropagationParameters(wavefront=None,
+    parameters = PropagationParameters(wavefront=WiseWavefront(wise_computation_results=None),
                                        propagation_elements=beamline)
 
     parameters.set_additional_parameters("NPools", 5)
 
-    wavefront = PropagationManager.Instance().do_propagation(parameters=parameters)
+    wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
 
     assert (wavefront.wise_computation_result == d.wise_optical_element.ComputationResults)
 
@@ -174,6 +175,7 @@ if __name__ == '__main__':
     # to fasten....
 
     kb = kb.wise_optical_element
+    d = d.wise_optical_element
 
     #%%
     if 1==1:
