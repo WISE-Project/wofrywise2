@@ -15,16 +15,13 @@ import wiselib2.Rayman as rm
 import wiselib2.Fundation as Fundation
 import wiselib2.Optics as Optics
 import wiselib2.ToolLib as tl
-import Examples.FermiSource as Fermi
+import wiselib2.FermiSource as Fermi
 
 importlib.reload(Fundation)
 importlib.reload(Optics)
 importlib.reload(tl)
 importlib.reload(rm)
 importlib.reload(Fermi)
-
-from wiselib2.must import *
-from wiselib2.Fundation import OpticalElement
 
 from matplotlib import pyplot as plt
 
