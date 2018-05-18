@@ -19,8 +19,8 @@ README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Luca Rebuffi'
 AUTHOR_EMAIL = 'luca.rebuffi@elettra.eu'
-URL = 'https://github.com/lucarebuffi/wofrywise'
-DOWNLOAD_URL = 'https://github.com/lucarebuffi/wofrywise'
+URL = 'https://github.com/oasys-elettra-kit/wofrywise2'
+DOWNLOAD_URL = 'https://github.com/oasys-elettra-kit/wofrywise2'
 MAINTAINER = 'Luca Rebuffi'
 MAINTAINER_EMAIL = 'luca.rebuffi@elettra.eu'
 LICENSE = 'GPLv3'
@@ -91,7 +91,7 @@ def git_version():
     return GIT_REVISION
 
 
-def write_version_py(filename='wofrywise/version.py'):
+def write_version_py(filename='wofrywise2/version.py'):
     # Copied from numpy setup.py
     cnt = """
 # THIS FILE IS GENERATED FROM wofrywise SETUP.PY
@@ -129,7 +129,7 @@ if not release:
 
 
 PACKAGES = [
-    "wofrywise",
+    "wofrywise2",
 ]
 
 PACKAGE_DATA = {

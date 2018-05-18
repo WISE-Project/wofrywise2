@@ -97,11 +97,6 @@ if __name__ == '__main__':
                         ReferTo = 'source',
                         PlaceWhat = 'upstream focus',
                         PlaceWhere = 'centre')
-    kb = OpticalElement(
-                        kb_k,
-                        PositioningDirectives = kb_pd,
-                        Name = 'kb')
-
 
     kb = WiseEllipticMirror(name='kb',
                             elliptic_mirror=kb_k,
