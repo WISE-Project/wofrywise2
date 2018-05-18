@@ -136,7 +136,7 @@ if __name__ == '__main__':
     beamline = PropagationElements()
 
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=s))
-    #beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
+    beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=kb))
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=d))
 

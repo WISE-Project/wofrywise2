@@ -51,6 +51,7 @@ class WisePropagator(Propagator1D):
                 wise_optical_element.Parent.ComputationResults = computation_result
 
             beamline.Append(wise_optical_element)
+            beamline.Append(oeEnd)
 
             oeStart = wise_optical_element.Parent
 
