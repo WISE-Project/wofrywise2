@@ -27,7 +27,7 @@ from matplotlib import pyplot as plt
 
 from numpy import *
 
-from wofry.propagator.propagator import PropagationElements, PropagationParameters, PropagationManager
+from wofry.propagator.propagator import PropagationParameters, PropagationManager
 
 from wofrywise2.beamline.wise_beamline_element import WiseBeamlineElement
 from wofrywise2.beamline.light_sources.wise_gaussian_source import WiseGaussianSource
@@ -36,7 +36,7 @@ from wofrywise2.beamline.optical_elements.wise_elliptic_mirror import WiseEllipt
 from wofrywise2.beamline.optical_elements.wise_detector import WiseDetector
 
 from wofrywise2.propagator.wavefront1D.wise_wavefront import WiseWavefront
-from wofrywise2.propagator.propagator1D.wise_propagator import WisePropagator
+from wofrywise2.propagator.propagator1D.wise_propagator import WisePropagator, WisePropagationElements
 
 print(__name__)
 if __name__ == '__main__':
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
 
 
-    beamline = PropagationElements()
+    beamline = WisePropagationElements()
 
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=s))
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
@@ -144,6 +144,7 @@ if __name__ == '__main__':
                                        propagation_elements=beamline)
 
     parameters.set_additional_parameters("NPools", 5)
+    parameters.set_additional_parameters("single_propagation", False)
 
     wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
 
@@ -194,40 +195,40 @@ if __name__ == '__main__':
         plt.title('|E|^2 (detector)')
 
 
-
 #%% Caustica
 
-    DefocusList = linspace(-6e-3, 1e-3,   21)
-    DefocusList_mm = DefocusList * 1e3
+    if 1==0:
+        DefocusList = linspace(-6e-3, 1e-3,   21)
+        DefocusList_mm = DefocusList * 1e3
 
-    import copy
-    kb_copy = copy.deepcopy(kb)
+        import copy
+        kb_copy = copy.deepcopy(kb)
 
-    ResultList, HewList,SigmaList, More = Fundation.FocusSweep(kb_copy, DefocusList,
-                                                            DetectorSize = 200e-6,
-                                                            NPools = 4)
+        ResultList, HewList,SigmaList, More = Fundation.FocusSweep(kb_copy, DefocusList,
+                                                                DetectorSize = 200e-6,
+                                                                NPools = 4)
 
-    N = len(ResultList)
+        N = len(ResultList)
 
-    # Plotta il campo sui detector a varie distanze
-    if 1==1:
-        plt.figure(23)
-        for Res in ResultList:
-            plt.plot(Res.S *1e6, abs(Res.Field))
-            plt.title('Campo')
-            plt.xlabel('um')
+        # Plotta il campo sui detector a varie distanze
+        if 1==1:
+            plt.figure(23)
+            for Res in ResultList:
+                plt.plot(Res.S *1e6, abs(Res.Field))
+                plt.title('Campo')
+                plt.xlabel('um')
 
 
 
-#%% Plot della HEW
+    #%% Plot della HEW
 
-    plt.figure(32)
-    plt.plot(DefocusList_mm, HewList,'.')
-    plt.plot(DefocusList_mm, 2*0.68* SigmaList,'x')
+        plt.figure(32)
+        plt.plot(DefocusList_mm, HewList,'.')
+        plt.plot(DefocusList_mm, 2*0.68* SigmaList,'x')
 
-    plt.xlabel('defocus (mm)')
-    plt.ylabel('Hew')
-    plt.legend(['Hew', '0.68 * 2 Sigma'])
+        plt.xlabel('defocus (mm)')
+        plt.ylabel('Hew')
+        plt.legend(['Hew', '0.68 * 2 Sigma'])
 
 
     plt.show()
