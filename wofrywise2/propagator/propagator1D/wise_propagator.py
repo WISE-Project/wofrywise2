@@ -34,6 +34,16 @@ class WisePropagationElements(PropagationElements):
     def get_wise_propagation_elements(self):
         return self.__wise_propagation_elements
 
+
+class DummyElement(Optics.TransmissionMask):
+    def __init__(self, electric_field):
+        super(DummyElement, self).__init__(L=1)
+
+        self.electric_field = electric_field
+
+    def EvalField(self, x1, y1, Lambda, E0, NPools = 3,  Options = ['HF']):
+        return self.electric_field
+
 class WisePropagator(Propagator1D):
 
     HANDLER_NAME = "WISE2_PROPAGATOR"
@@ -52,7 +62,11 @@ class WisePropagator(Propagator1D):
         if not is_generic_wavefront and not wavefront is None:
             if not isinstance(wavefront, WiseWavefront): raise ValueError("Wavefront cannot be managed by this propagator")
 
+        if is_generic_wavefront:
+            wavefront = WiseWavefront.fromGenericWavefront(wavefront)
+
         wise_propagation_elements = parameters.get_PropagationElements()
+        beamline = wise_propagation_elements.get_wise_propagation_elements()
 
         oeEnd = wise_propagation_elements.get_wise_propagation_element(-1)
 
@@ -61,12 +75,18 @@ class WisePropagator(Propagator1D):
                 raise ValueError("Computation is impossibile: Optical Element is the Source")
 
             if oeEnd.Parent is None:
-                oeEnd.Parent = Fundation.OpticalElement(Name="Dummy",
-                                                        PositioningDirectives= Fundation.PositioningDirectives(ReferTo = Fundation.PositioningDirectives.ReferTo.AbsoluteReference,
-                                                                                                               XYCentre = [0,0],
-                                                                                                               Angle = numpy.deg2rad(0)))
-                oeEnd.Parent.ComputationResults = wavefront.wise_computation_result
+                dummy_optical_element = Fundation.OpticalElement(Name="Dummy",
+                                                                 Element=DummyElement(wavefront.wise_computation_result.Field),
+                                                                 PositioningDirectives= Fundation.PositioningDirectives(ReferTo = Fundation.PositioningDirectives.ReferTo.AbsoluteReference,
+                                                                                                                        XYCentre = [0,0],
+                                                                                                                        Angle = numpy.deg2rad(0)))
 
+                #dummy_optical_element.ComputationSettings.Ignore = True
+                dummy_optical_element.ComputationResults = wavefront.wise_computation_result
+                dummy_optical_element.ComputationSettings.UseCustomSampling = oeEnd.ComputationSettings.UseCustomSampling
+                dummy_optical_element.ComputationSettings.NSamples = oeEnd.ComputationSettings.NSamples
+
+                beamline.Insert(dummy_optical_element, ExistingName=oeEnd.Name, Mode=Fundation.INSERT_MODE.Before)
             if not oeEnd.Parent.IsSource and oeEnd.Parent.ComputationResults.Field is None:
                 if wavefront.wise_computation_result is None:  raise ValueError("Computation is impossibile: Parent Optical Element has no computed Field and Optical Element is not the Source")
 
@@ -79,10 +99,13 @@ class WisePropagator(Propagator1D):
             if not oeStart.IsSource:
                 if oeStart.Parent is None:
                     oeStart.Parent = Fundation.OpticalElement(Name="Dummy",
-                                                            PositioningDirectives= Fundation.PositioningDirectives(ReferTo = Fundation.PositioningDirectives.ReferTo.AbsoluteReference,
-                                                                                                                   XYCentre = [0,0],
-                                                                                                                   Angle = numpy.deg2rad(0)))
+                                                              IsSource = True,
+                                                              PositioningDirectives= Fundation.PositioningDirectives(ReferTo = Fundation.PositioningDirectives.ReferTo.AbsoluteReference,
+                                                                                                                     XYCentre = [0,0],
+                                                                                                                     Angle = numpy.deg2rad(0)))
                     oeStart.Parent.ComputationResults = wavefront.wise_computation_result
+                    oeStart.Parent.ComputationSettings.UseCustomSampling = oeStart.ComputationSettings.UseCustomSampling
+                    oeStart.Parent.ComputationSettings.NSamples = oeStart.ComputationSettings.NSamples
 
                 if oeStart.Parent.ComputationResults.Field is None:
                     if wavefront.wise_computation_result is None:  raise ValueError("Computation is impossibile: Parent Optical Element has no computed Field and Optical Element is not the Source")
@@ -92,8 +115,6 @@ class WisePropagator(Propagator1D):
                 if oeStart.ComputationResults.Field is None: oeStart.ComputationResults = wavefront.wise_computation_result
 
             oeStart = wise_propagation_elements.get_wise_propagation_element(0)
-
-        beamline = wise_propagation_elements.get_wise_propagation_elements()
 
         if isinstance(oeEnd, Optics.MirrorElliptic): beamline.RefreshPositions()
         beamline.ComputationSettings.NPools = int(parameters.get_additional_parameter("NPools"))

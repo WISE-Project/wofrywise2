@@ -1,3 +1,5 @@
+import numpy
+
 from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D, WavefrontDimension
 from wofry.propagator.decorators import WavefrontDecorator
 
@@ -16,7 +18,7 @@ class WiseWavefront(WavefrontDecorator):
     def toGenericWavefront(self):
         wavelength = self.wise_computation_result.Lambda
         position = self.wise_computation_result.S
-        electric_field = self.wise_computation_result.Field
+        electric_field = numpy.real(self.wise_computation_result.Field) + 1j*numpy.imag(self.wise_computation_result.Field)
 
         return GenericWavefront1D.initialize_wavefront_from_arrays(x_array=position, y_array=electric_field, wavelength=wavelength)
 
