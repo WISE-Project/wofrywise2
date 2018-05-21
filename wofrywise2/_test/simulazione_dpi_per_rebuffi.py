@@ -23,26 +23,15 @@ importlib.reload(tl)
 importlib.reload(rm)
 importlib.reload(Fermi)
 
+from wiselib2.must import *
+from wiselib2.Fundation import OpticalElement
+
 from matplotlib import pyplot as plt
 
 from numpy import *
 
-from wofry.propagator.propagator import PropagationParameters, PropagationManager
-
-from wofrywise2.beamline.wise_beamline_element import WiseBeamlineElement
-from wofrywise2.beamline.light_sources.wise_gaussian_source import WiseGaussianSource
-from wofrywise2.beamline.optical_elements.wise_plane_mirror import WisePlaneMirror
-from wofrywise2.beamline.optical_elements.wise_elliptic_mirror import WiseEllipticMirror
-from wofrywise2.beamline.optical_elements.wise_detector import WiseDetector
-
-from wofrywise2.propagator.wavefront1D.wise_wavefront import WiseWavefront
-from wofrywise2.propagator.propagator1D.wise_propagator import WisePropagator, WisePropagationElements
-
 print(__name__)
 if __name__ == '__main__':
-
-    PropagationManager.Instance().add_propagator(WisePropagator())
-
 
     tl.Debug.On = True
     N = 7000
@@ -51,17 +40,15 @@ if __name__ == '__main__':
     #==========================================================================
     Lambda = 32e-9
     Waist0 = Fermi.Waist0E(Lambda)
-
     s_k = Optics.SourceGaussian(Lambda, Waist0)      # Kernel delle ottiche
     s_pd = Fundation.PositioningDirectives(            # Direttive di posizionamento
                         ReferTo = Fundation.PositioningDirectives.ReferTo.AbsoluteReference,
                         XYCentre = [0,0],
                         Angle = deg2rad(0))
-
-
-    s = WiseGaussianSource(name='source',
-                           source_gaussian=s_k,
-                           position_directives=s_pd)
+    s = OpticalElement(                                    # Optical Element (la cosa più vicina al pupolo Oasys)
+                        s_k, 
+                        PositioningDirectives = s_pd, 
+                        Name = 'source', IsSource = True)
 
 
     # PM1A (h)
@@ -72,86 +59,82 @@ if __name__ == '__main__':
                                     PlaceWhat = 'centre',
                                     PlaceWhere = 'centre',
                                     Distance = 48090.1)
-
-    pm1a = WisePlaneMirror(name= 'pm1a',
-                           plane_mirror=pm1a_k,
-                           position_directives=pm1a_pd)
-
-    pm1a.wise_optical_element.ComputationSettings.Ignore = False          # Lo user decide di non simulare lo specchio ()
-    pm1a.wise_optical_element.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
-    pm1a.wise_optical_element.ComputationSettings.NSamples = N
+    pm1a = OpticalElement(pm1a_k, 
+                            PositioningDirectives = pm1a_pd, 
+                            Name = 'pm1a')
+    pm1a.ComputationSettings.Ignore = False          # Lo user decide di non simulare lo specchio ()
+    pm1a.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
+    pm1a.ComputationSettings.NSamples = N
 
     # KB(h)
     #==========================================================================
     f1 = 98
     f2 = 1.2
     GrazingAngle = deg2rad(2.5)
-    L = 0.4
+    L = 0.4 
 
     #ob = Optics.Obstruction()
-
 
     kb_k = Optics.MirrorElliptic(f1 = f1, f2 = f2 , L= L, Alpha = GrazingAngle)
     kb_pd = Fundation.PositioningDirectives(
                         ReferTo = 'source',
                         PlaceWhat = 'upstream focus',
                         PlaceWhere = 'centre')
-
-    kb = WiseEllipticMirror(name='kb',
-                            elliptic_mirror=kb_k,
-                            position_directives=kb_pd)
+    kb = OpticalElement(                                
+                        kb_k, 
+                        PositioningDirectives = kb_pd, 
+                        Name = 'kb')
 
     #----- Impostazioni KB
-    kb.wise_optical_element.CoreOptics.ComputationSettings.UseFigureError = True
-    kb.wise_optical_element.CoreOptics.ComputationSettings.UseRoughness = False
-    kb.wise_optical_element.CoreOptics.ComputationSettings.UseSmallDisplacements = False # serve per traslare/ruotare l'EO
-    kb.wise_optical_element.CoreOptics.SmallDisplacements.Rotation = deg2rad(0)
-    kb.wise_optical_element.CoreOptics.SmallDisplacements.Trans = 0 # Transverse displacement (rispetto al raggio uscente, magari faremo scegliere)
-    kb.wise_optical_element.CoreOptics.SmallDisplacements.Long = 0 # Longitudinal displacement (idem)
+    kb.CoreOptics.ComputationSettings.UseFigureError = True
+    kb.CoreOptics.ComputationSettings.UseRoughness = False 
+    kb.CoreOptics.ComputationSettings.UseSmallDisplacements = False # serve per traslare/ruotare l'EO
+    kb.CoreOptics.SmallDisplacements.Rotation = deg2rad(0)
+    kb.CoreOptics.SmallDisplacements.Trans = 0 # Transverse displacement (rispetto al raggio uscente, magari faremo scegliere)
+    kb.CoreOptics.SmallDisplacements.Long = 0 # Longitudinal displacement (idem)
     # aggiungo figure error
-    kb.wise_optical_element.CoreOptics.FigureErrorLoad(File = "/Users/admin/Documents/workspace/OASYS-Develop/1.0/wiselib2/Examples/DATI/kbv.txt",
+    kb.CoreOptics.FigureErrorLoad(File = "/Users/admin/Desktop/Lavoro/Private/Progetti/OASYS/per luca/DATI/kbv.txt",
                   Step = 2e-3, # passo del file
-                  AmplitudeScaling = 1*1e-3 # fattore di scala
+                  AmplitudeScaling = 1*1e-3 # fattore di scala 
                   )
-    kb.wise_optical_element.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
-    kb.wise_optical_element.ComputationSettings.NSamples = N
+    kb.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
+    kb.ComputationSettings.NSamples = N
 
     # detector (h)
     #==========================================================================
     d_k = Optics.Detector(
-                        L=400e-6,
+                        L=400e-6, 
                         AngleGrazing = deg2rad(90) )
     d_pd = Fundation.PositioningDirectives(
                         ReferTo = 'upstream',
                         PlaceWhat = 'centre',
                         PlaceWhere = 'downstream focus',
                         Distance = 0)
-    d = WiseDetector(name = 'detector',
-                     detector=d_k,
-                     position_directives=d_pd)
+    d = OpticalElement(
+                        d_k, 
+                        PositioningDirectives = d_pd, 
+                        Name = 'detector')
+    d.ComputationSettings.UseCustomSampling = UseCustomSampling 
+    d.ComputationSettings.NSamples = N                          # come sopra. In teoria il campionamento può essere specificato elemento per elmeento
+    
 
-    d.wise_optical_element.ComputationSettings.UseCustomSampling = UseCustomSampling
-    d.wise_optical_element.ComputationSettings.NSamples = N                          # come sopra. In teoria il campionamento può essere specificato elemento per elmeento
+    # Assemblamento beamline
+    #==========================================================================
+    t = None
+    t = Fundation.BeamlineElements()
+    t.Append(s)
+    t.Append(pm1a)         # per ora lo lasciamo commentato, devo aggiustare una cosa che si è rotta 2 gg fa
+    t.Append(kb)
+    t.Append(d)
+    t.RefreshPositions()
 
+    print(t) # comodo per controllare la rappresentazione interna di Beamline Element
 
+    
+    #%%      Calcolo il campo: sorgente -> specchio
 
-    beamline = WisePropagationElements()
-
-    beamline.add_beamline_element(WiseBeamlineElement(optical_element=s))
-    beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
-    beamline.add_beamline_element(WiseBeamlineElement(optical_element=kb))
-    beamline.add_beamline_element(WiseBeamlineElement(optical_element=d))
-
-    parameters = PropagationParameters(wavefront=WiseWavefront(wise_computation_results=None),
-                                       propagation_elements=beamline)
-
-    parameters.set_additional_parameters("NPools", 5)
-    parameters.set_additional_parameters("single_propagation", False)
-
-    wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
-
-    assert (wavefront.wise_computation_result == d.wise_optical_element.ComputationResults)
-
+    t.ComputationSettings.NPools = 5
+    t.ComputeFields(oeStart=s, oeEnd=d, Verbose = False)
     """
     s = elemento di inizio; d = elemento finale. Se non specificati, li trova lui
     quinti 
@@ -166,20 +149,17 @@ if __name__ == '__main__':
     
     .ComputeFields riempie l'oggetto ComputationResults
     """
-
-    # to fasten....
-
-    kb = kb.wise_optical_element
-    d = d.wise_optical_element
-
+    
+    
+    
     #%%
     if 1==1:
         #------------------Intensità normalizzata su specchio
         S = kb.ComputationResults.S
         E = kb.ComputationResults.Field
-        I = abs(E)**2
+        I = abs(E)**2 
         I = I/max(I)
-
+        
         plt.figure(11)
         plt.plot(S*1e3, abs(E)**2/max(abs(E)**2))
         plt.xlabel('mm')
@@ -188,14 +168,15 @@ if __name__ == '__main__':
         #------------------Intensità normalizzata nel fuoco
         Sd = d.ComputationResults.S
         Ed = d.ComputationResults.Field
-        Id = abs(Ed)**2
+        Id = abs(Ed)**2 
         Id = Id/max(Id)
-
+        
         plt.figure(13)
         plt.plot(Sd*1e3, abs(Ed))
         plt.xlabel('mm')
-        plt.title('|E|^2 (detector)')
-
+        plt.title('|E|^2 (detector)')        
+        
+        
 
 #%% Caustica
     if 1==0:
@@ -234,10 +215,10 @@ if __name__ == '__main__':
 
     plt.show()
 #%%
+    
 
-
-
-
-
-
-
+     
+    
+    
+    
+    

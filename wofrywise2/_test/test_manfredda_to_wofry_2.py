@@ -38,6 +38,15 @@ from wofrywise2.beamline.optical_elements.wise_detector import WiseDetector
 from wofrywise2.propagator.wavefront1D.wise_wavefront import WiseWavefront
 from wofrywise2.propagator.propagator1D.wise_propagator import WisePropagator, WisePropagationElements
 
+def plot(oe, id):
+    S = oe.ComputationResults.S
+    E = oe.ComputationResults.Field
+
+    plt.figure(id)
+    plt.plot(S*1e3, abs(E)**2/max(abs(E)**2))
+    plt.xlabel('mm')
+    plt.title('|E| (' + oe.Name + ')')
+
 print(__name__)
 if __name__ == '__main__':
 
@@ -133,106 +142,59 @@ if __name__ == '__main__':
     d.wise_optical_element.ComputationSettings.UseCustomSampling = UseCustomSampling
     d.wise_optical_element.ComputationSettings.NSamples = N                          # come sopra. In teoria il campionamento può essere specificato elemento per elmeento
 
-
-
     beamline = WisePropagationElements()
 
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=s))
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
-    beamline.add_beamline_element(WiseBeamlineElement(optical_element=kb))
-    beamline.add_beamline_element(WiseBeamlineElement(optical_element=d))
 
     parameters = PropagationParameters(wavefront=WiseWavefront(wise_computation_results=None),
                                        propagation_elements=beamline)
-
+    parameters.set_additional_parameters("single_propagation", True)
     parameters.set_additional_parameters("NPools", 5)
-    parameters.set_additional_parameters("single_propagation", False)
 
     wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
 
-    assert (wavefront.wise_computation_result == d.wise_optical_element.ComputationResults)
+    if not pm1a.wise_optical_element.ComputationSettings.Ignore: plot(pm1a.wise_optical_element, 11)
 
-    """
-    s = elemento di inizio; d = elemento finale. Se non specificati, li trova lui
-    quinti 
-    t.ComputeFields() fa tutta la beamline
-     Utile sarebbero i comandi Oasys (adeguali alla notazione che immagino esista già)
-     Propagate To Next => t.ComputeFields(oe,oe.Children[0])
-     Propagate From Previous => t.ComputeFields(oe.Parent,oe)
-    
-    .Children è una lista e contiene la possibilità di diramare il path ottico, 
-    cosa che di fatto ora non ho mai usato.
-    Va da sé che il "Child" è quindi Children[0]
-    
-    .ComputeFields riempie l'oggetto ComputationResults
-    """
+    beamline.add_beamline_element(WiseBeamlineElement(optical_element=kb))
 
-    # to fasten....
+    parameters = PropagationParameters(wavefront=wavefront,
+                                       propagation_elements=beamline)
+    parameters.set_additional_parameters("single_propagation", True)
+    parameters.set_additional_parameters("NPools", 5)
 
-    kb = kb.wise_optical_element
-    d = d.wise_optical_element
+    wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
 
-    #%%
-    if 1==1:
-        #------------------Intensità normalizzata su specchio
-        S = kb.ComputationResults.S
-        E = kb.ComputationResults.Field
-        I = abs(E)**2
-        I = I/max(I)
+    plot(kb.wise_optical_element, 22)
 
-        plt.figure(11)
-        plt.plot(S*1e3, abs(E)**2/max(abs(E)**2))
-        plt.xlabel('mm')
-        plt.title('|E| (mirror)')
+    # DETECTOR
+    beamline.add_beamline_element(WiseBeamlineElement(optical_element=d))
 
-        #------------------Intensità normalizzata nel fuoco
-        Sd = d.ComputationResults.S
-        Ed = d.ComputationResults.Field
-        Id = abs(Ed)**2
-        Id = Id/max(Id)
+    parameters = PropagationParameters(wavefront=wavefront,
+                                       propagation_elements=beamline)
+    parameters.set_additional_parameters("single_propagation", True)
+    parameters.set_additional_parameters("NPools", 5)
 
-        plt.figure(13)
-        plt.plot(Sd*1e3, abs(Ed))
-        plt.xlabel('mm')
-        plt.title('|E|^2 (detector)')
+    wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
 
+    plot(d.wise_optical_element, 33)
 
-#%% Caustica
-    if 1==0:
-        DefocusList = linspace(-6e-3, 1e-3,   21)
-        DefocusList_mm = DefocusList * 1e3
+    print(beamline.get_wise_propagation_elements()) # comodo per controllare la rappresentazione interna di Beamline Element
 
-        import copy
-        kb_copy = copy.deepcopy(kb)
+    parameters = PropagationParameters(wavefront=WiseWavefront(wise_computation_results=None),
+                                       propagation_elements=beamline)
+    parameters.set_additional_parameters("single_propagation", False)
+    parameters.set_additional_parameters("NPools", 5)
 
-        ResultList, HewList,SigmaList, More = Fundation.FocusSweep(kb_copy, DefocusList,
-                                                                DetectorSize = 200e-6,
-                                                                NPools = 4)
+    wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
 
-        N = len(ResultList)
-
-        # Plotta il campo sui detector a varie distanze
-        if 1==1:
-            plt.figure(23)
-            for Res in ResultList:
-                plt.plot(Res.S *1e6, abs(Res.Field))
-                plt.title('Campo')
-                plt.xlabel('um')
-
-
-
-    #%% Plot della HEW
-
-        plt.figure(32)
-        plt.plot(DefocusList_mm, HewList,'.')
-        plt.plot(DefocusList_mm, 2*0.68* SigmaList,'x')
-
-        plt.xlabel('defocus (mm)')
-        plt.ylabel('Hew')
-        plt.legend(['Hew', '0.68 * 2 Sigma'])
-
+    plot(d.wise_optical_element, 44)
 
     plt.show()
+
+
+
+
 #%%
 
 
