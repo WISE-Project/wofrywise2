@@ -9,6 +9,7 @@ from wofry.propagator.propagator import Propagator1D, PropagationParameters, Pro
 from wofrywise2.propagator.wavefront1D.wise_wavefront import WiseWavefront
 from wofrywise2.beamline.wise_beamline_element import WiseBeamlineElement
 from wofrywise2.beamline.wise_optical_element import WiseOpticalElement
+from wofrywise2.beamline.optical_elements.wise_detector import WiseDetector
 
 from wiselib2 import Fundation, Optics
 
@@ -26,23 +27,13 @@ class WisePropagationElements(PropagationElements):
 
         self.__wise_propagation_elements.Append(beamline_element.get_optical_element().wise_optical_element)
 
-    def insert_beamline_element(self, index, new_element=WiseBeamlineElement(), mode=Fundation.INSERT_MODE.Before):
-        if not (mode == Fundation.INSERT_MODE.After or mode == Fundation.INSERT_MODE.Before): raise ValueError("Fork mode is not supported")
+    def insert_beamline_element(self, index, new_element=WiseBeamlineElement(), mode=PropagationElements.INSERT_BEFORE):
+        super(WisePropagationElements, self).insert_beamline_element(index, new_element, mode)
 
         self.__wise_propagation_elements.Insert(new_element.get_optical_element().wise_optical_element,
                                                 ExistingName=self.get_wise_propagation_element(index).Name,
-                                                Mode=mode)
+                                                Mode=mode+1)
 
-        if mode == Fundation.INSERT_MODE.Before:
-            if index == 0:
-                super(WisePropagationElements, self).__propagation_elements = [new_element] + super(WisePropagationElements, self).__propagation_elements
-            else:
-                super(WisePropagationElements, self).__propagation_elements.insert(index, new_element)
-        elif mode == Fundation.INSERT_MODE.After:
-            if index == len(super(WisePropagationElements, self).__propagation_elements) - 1:
-                super(WisePropagationElements, self).__propagation_elements = super(WisePropagationElements, self).__propagation_elements + [new_element]
-            else:
-                super(WisePropagationElements, self).__propagation_elements.insert(index+1, new_element)
 
     def add_beamline_elements(self, beamline_elements=[]):
         for beamline_element in beamline_elements:
@@ -77,7 +68,8 @@ class WisePropagator(Propagator1D):
 
         wise_propagation_elements = parameters.get_PropagationElements()
 
-        oeEnd = wise_propagation_elements.get_wise_propagation_element(-1)
+        optical_element_end = wise_propagation_elements.get_propagation_element(-1).get_optical_element()
+        oeEnd = optical_element_end.wise_optical_element
 
         if parameters.get_additional_parameter("single_propagation") == True:
             if oeEnd.IsSource:
@@ -86,7 +78,7 @@ class WisePropagator(Propagator1D):
             if oeEnd.Parent is None:
                 wise_propagation_elements.insert_beamline_element(index = -1,
                                                                   new_element=WiseBeamlineElement(optical_element=WiseOpticalElement(wise_optical_element=get_dummy_element(wavefront, oeEnd))),
-                                                                  mode=Fundation.INSERT_MODE.Before)
+                                                                  mode=PropagationElements.INSERT_BEFORE)
 
             oeStart = wise_propagation_elements.get_wise_propagation_element(-2)
         else:
@@ -95,14 +87,14 @@ class WisePropagator(Propagator1D):
             if not oeStart.IsSource and oeStart.Parent is None:
                 wise_propagation_elements.insert_beamline_element(index = 0,
                                                                   new_element=WiseBeamlineElement(optical_element=WiseOpticalElement(wise_optical_element=get_dummy_element(wavefront, oeStart))),
-                                                                  mode=Fundation.INSERT_MODE.Before)
+                                                                  mode=PropagationElements.INSERT_BEFORE)
 
                 oeStart = wise_propagation_elements.get_wise_propagation_element(0)
 
         beamline = wise_propagation_elements.get_wise_propagation_elements()
-        if isinstance(oeEnd.CoreOptics, Optics.Detector): beamline.RefreshPositions()
+        if isinstance(optical_element_end, WiseDetector): beamline.RefreshPositions()
         beamline.ComputationSettings.NPools = int(parameters.get_additional_parameter("NPools"))
-        beamline.ComputeFields(oeStart=oeStart, oeEnd=oeEnd)
+        beamline.ComputeFields(oeStart=oeStart, oeEnd=oeEnd, Verbose=False)
 
         result = WiseWavefront(wise_computation_results=oeEnd.ComputationResults)
 

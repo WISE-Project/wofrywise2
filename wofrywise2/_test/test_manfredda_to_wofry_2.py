@@ -60,14 +60,14 @@ if __name__ == '__main__':
     #==========================================================================
     Lambda = 32e-9
     Waist0 = Fermi.Waist0E(Lambda)
-
+    Waist0 = 0.00018006
     print("Waist0", Waist0)
 
     s_k = Optics.SourceGaussian(Lambda, Waist0)      # Kernel delle ottiche
     s_pd = Fundation.PositioningDirectives(            # Direttive di posizionamento
                         ReferTo = Fundation.PositioningDirectives.ReferTo.AbsoluteReference,
-                        XYCentre = [0,0],
-                        Angle = deg2rad(0))
+                        XYCentre = [0.0, 0.0],
+                        Angle = 0.0)
 
 
     s = WiseGaussianSource(name='source',
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     #==========================================================================
     d_k = Optics.Detector(
                         L=400e-6,
-                        AngleGrazing = deg2rad(90) )
+                        AngleGrazing = deg2rad(90))
     d_pd = Fundation.PositioningDirectives(
                         ReferTo = 'upstream',
                         PlaceWhat = 'centre',
@@ -145,11 +145,12 @@ if __name__ == '__main__':
     d.wise_optical_element.ComputationSettings.NSamples = N                          # come sopra. In teoria il campionamento può essere specificato elemento per elmeento
 
     beamline = WisePropagationElements()
+    wavefront = WiseWavefront(wise_computation_results=None)
 
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=s))
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
 
-    parameters = PropagationParameters(wavefront=WiseWavefront(wise_computation_results=None),
+    parameters = PropagationParameters(wavefront=wavefront,
                                        propagation_elements=beamline)
     parameters.set_additional_parameters("single_propagation", True)
     parameters.set_additional_parameters("NPools", 5)
