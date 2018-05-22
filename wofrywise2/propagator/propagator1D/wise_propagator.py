@@ -35,14 +35,14 @@ class WisePropagationElements(PropagationElements):
 
         if mode == Fundation.INSERT_MODE.Before:
             if index == 0:
-                self.__propagation_elements = [new_element] + self.__propagation_elements
+                super(WisePropagationElements, self).__propagation_elements = [new_element] + super(WisePropagationElements, self).__propagation_elements
             else:
-                self.__propagation_elements.insert(index, new_element)
+                super(WisePropagationElements, self).__propagation_elements.insert(index, new_element)
         elif mode == Fundation.INSERT_MODE.After:
-            if index == len(self.__propagation_elements) - 1:
-                self.__propagation_elements = self.__propagation_elements + [new_element]
+            if index == len(super(WisePropagationElements, self).__propagation_elements) - 1:
+                super(WisePropagationElements, self).__propagation_elements = super(WisePropagationElements, self).__propagation_elements + [new_element]
             else:
-                self.__propagation_elements.insert(index+1, new_element)
+                super(WisePropagationElements, self).__propagation_elements.insert(index+1, new_element)
 
     def add_beamline_elements(self, beamline_elements=[]):
         for beamline_element in beamline_elements:
@@ -53,16 +53,6 @@ class WisePropagationElements(PropagationElements):
 
     def get_wise_propagation_elements(self):
         return self.__wise_propagation_elements
-
-
-class DummyElement(Optics.SourceGaussian):
-    def __init__(self, Lambda, electric_field):
-        super(DummyElement, self).__init__(Lambda, 1e-6)
-
-        self.electric_field = electric_field
-
-    def EvalField(self, x1, y1, Lambda, NPools=3, **kwargs):
-        return self.electric_field
 
 class WisePropagator(Propagator1D):
 
@@ -120,6 +110,16 @@ class WisePropagator(Propagator1D):
             return result.toGenericWavefront()
         else:
             return result
+
+
+class DummyElement(Optics.SourceGaussian):
+    def __init__(self, Lambda, electric_field):
+        super(DummyElement, self).__init__(Lambda, 1e-6)
+
+        self.electric_field = electric_field
+
+    def EvalField(self, x1, y1, Lambda, NPools=3, **kwargs):
+        return self.electric_field
 
 def get_dummy_element(wavefront, oe):
     dummy_optical_element = Fundation.OpticalElement(Name="Dummy",
