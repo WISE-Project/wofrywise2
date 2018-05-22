@@ -8,7 +8,6 @@ from wofry.propagator.propagator import Propagator1D, PropagationParameters, Pro
 
 from wofrywise2.propagator.wavefront1D.wise_wavefront import WiseWavefront
 from wofrywise2.beamline.wise_beamline_element import WiseBeamlineElement
-from wofrywise2.beamline.wise_optical_element import WiseOpticalElement
 from wofrywise2.beamline.optical_elements.wise_detector import WiseDetector
 
 from wiselib2 import Fundation, Optics
@@ -68,19 +67,14 @@ class WisePropagator(Propagator1D):
 
         wise_propagation_elements = parameters.get_PropagationElements()
 
-        optical_element_end = wise_propagation_elements.get_propagation_element(-1).get_optical_element()
-        oeEnd = optical_element_end.wise_optical_element
-
-        if parameters.get_additional_parameter("single_propagation") == True:
-            if oeEnd.IsSource: raise ValueError("Computation is impossibile: Optical Element is the Source")
-
-            oeStart = wise_propagation_elements.get_wise_propagation_element(-2)
-        else:
-            oeStart = wise_propagation_elements.get_wise_propagation_element(0)
-
         beamline = wise_propagation_elements.get_wise_propagation_elements()
-        if isinstance(optical_element_end, WiseDetector): beamline.RefreshPositions()
         beamline.ComputationSettings.NPools = int(parameters.get_additional_parameter("NPools"))
+
+        optical_element_end = wise_propagation_elements.get_propagation_element(-1).get_optical_element()
+        if isinstance(optical_element_end, WiseDetector): beamline.RefreshPositions()
+
+        oeEnd = optical_element_end.wise_optical_element
+        oeStart = wise_propagation_elements.get_wise_propagation_element(-2 if parameters.get_additional_parameter("single_propagation") else 0)
 
         if PropagationManager.Instance().get_interactive_mode() == InteractiveMode.ENABLED or parameters.get_additional_parameter("is_full_propagator"):
             beamline.ComputeFields(oeStart=oeStart, oeEnd=oeEnd, Verbose=False)
