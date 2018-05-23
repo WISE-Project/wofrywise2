@@ -58,7 +58,7 @@ if __name__ == '__main__':
                                     ReferTo = 'upstream',
                                     PlaceWhat = 'centre',
                                     PlaceWhere = 'centre',
-                                    Distance = 48090.1)
+                                    Distance = 48.0901)
     pm1a = OpticalElement(pm1a_k, 
                             PositioningDirectives = pm1a_pd, 
                             Name = 'pm1a')
@@ -77,16 +77,20 @@ if __name__ == '__main__':
 
     kb_k = Optics.MirrorElliptic(f1 = f1, f2 = f2 , L= L, Alpha = GrazingAngle)
     kb_pd = Fundation.PositioningDirectives(
-                        ReferTo = 'source',
-                        PlaceWhat = 'upstream focus',
-                        PlaceWhere = 'centre')
-    kb = OpticalElement(                                
+#                        ReferTo = 'source',
+#                        PlaceWhat = 'upstream focus',
+#                        PlaceWhere = 'centre')
+                        ReferTo = 'upstream',
+                        PlaceWhat = 'centre',
+                        PlaceWhere = 'centre',
+                        Distance=49.9099)
+    kb = OpticalElement(
                         kb_k, 
                         PositioningDirectives = kb_pd, 
                         Name = 'kb')
 
     #----- Impostazioni KB
-    kb.CoreOptics.ComputationSettings.UseFigureError = True
+    kb.CoreOptics.ComputationSettings.UseFigureError = False
     kb.CoreOptics.ComputationSettings.UseRoughness = False 
     kb.CoreOptics.ComputationSettings.UseSmallDisplacements = False # serve per traslare/ruotare l'EO
     kb.CoreOptics.SmallDisplacements.Rotation = deg2rad(0)

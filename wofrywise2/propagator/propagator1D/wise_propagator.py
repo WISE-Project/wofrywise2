@@ -71,12 +71,12 @@ class WisePropagator(Propagator1D):
         beamline.ComputationSettings.NPools = int(parameters.get_additional_parameter("NPools"))
 
         optical_element_end = wise_propagation_elements.get_propagation_element(-1).get_optical_element()
-        if isinstance(optical_element_end, WiseDetector): beamline.RefreshPositions()
 
         oeEnd = optical_element_end.wise_optical_element
         oeStart = wise_propagation_elements.get_wise_propagation_element(-2 if parameters.get_additional_parameter("single_propagation") else 0)
 
         if PropagationManager.Instance().get_interactive_mode() == InteractiveMode.ENABLED or parameters.get_additional_parameter("is_full_propagator"):
+            beamline.RefreshPositions()
             beamline.ComputeFields(oeStart=oeStart, oeEnd=oeEnd, Verbose=False)
 
             result = WiseWavefront(wise_computation_results=oeEnd.ComputationResults)

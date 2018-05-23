@@ -68,7 +68,7 @@ if __name__ == '__main__':
                                     ReferTo = 'upstream',
                                     PlaceWhat = 'centre',
                                     PlaceWhere = 'centre',
-                                    Distance = 48090.1)
+                                    Distance = 48.0901)
     pm1a = OpticalElement(pm1a_k, 
                           PositioningDirectives = pm1a_pd,
                           Name = 'pm1a')
@@ -87,16 +87,20 @@ if __name__ == '__main__':
 
     kb_k = Optics.MirrorElliptic(f1 = f1, f2 = f2 , L= L, Alpha = GrazingAngle)
     kb_pd = Fundation.PositioningDirectives(
-                        ReferTo = 'source',
-                        PlaceWhat = 'upstream focus',
-                        PlaceWhere = 'centre')
+#                        ReferTo = 'source',
+#                        PlaceWhat = 'upstream focus',
+#                        PlaceWhere = 'centre')
+                        ReferTo = 'upstream',
+                        PlaceWhat = 'centre',
+                        PlaceWhere = 'centre',
+                        Distance=49.9099)
     kb = OpticalElement(                                
                         kb_k, 
                         PositioningDirectives = kb_pd, 
                         Name = 'kb')
 
     #----- Impostazioni KB
-    kb.CoreOptics.ComputationSettings.UseFigureError = True
+    kb.CoreOptics.ComputationSettings.UseFigureError = False
     kb.CoreOptics.ComputationSettings.UseRoughness = False 
     kb.CoreOptics.ComputationSettings.UseSmallDisplacements = False # serve per traslare/ruotare l'EO
     kb.CoreOptics.SmallDisplacements.Rotation = deg2rad(0)
@@ -133,6 +137,7 @@ if __name__ == '__main__':
     t = Fundation.BeamlineElements()
     t.Append(s)
     t.Append(pm1a)         # per ora lo lasciamo commentato, devo aggiustare una cosa che si è rotta 2 gg fa
+    t.RefreshPositions()
 
     t.ComputationSettings.NPools = 5
     t.ComputeFields(oeStart=s, oeEnd=pm1a, Verbose = False)
@@ -140,23 +145,26 @@ if __name__ == '__main__':
     if not pm1a.ComputationSettings.Ignore: plot(pm1a, 11)
 
     t.Append(kb)
+    t.RefreshPositions()
 
-    t.ComputeFields(oeStart=pm1a, oeEnd=kb, Verbose = False)
+    t.ComputeFields(oeStart=s, oeEnd=kb, Verbose = False)
 
     plot(kb, 22)
 
     t.Append(d)
     t.RefreshPositions()
 
-    t.ComputeFields(oeStart=kb, oeEnd=d, Verbose = False)
+    t.ComputeFields(oeStart=s, oeEnd=d, Verbose = False)
+
+    print(d.ComputationResults.Action, d.ComputationResults.Lambda)
 
     plot(d, 33)
 
     print(t) # comodo per controllare la rappresentazione interna di Beamline Element
 
-    t.ComputeFields(oeStart=s, oeEnd=d, Verbose = False)
+    #t.ComputeFields(oeStart=s, oeEnd=d, Verbose = False)
 
-    plot(d, 44)
+    #plot(d, 44)
 
     plt.show()
 #%%
