@@ -147,14 +147,14 @@ if __name__ == '__main__':
     t.Append(kb)
     t.RefreshPositions()
 
-    t.ComputeFields(oeStart=s, oeEnd=kb, Verbose = False)
+    t.ComputeFields(oeStart=pm1a, oeEnd=kb, Verbose = False)
 
     plot(kb, 22)
 
     t.Append(d)
     t.RefreshPositions()
 
-    t.ComputeFields(oeStart=s, oeEnd=d, Verbose = False)
+    t.ComputeFields(oeStart=kb, oeEnd=d, Verbose = False)
 
     print(d.ComputationResults.Action, d.ComputationResults.Lambda)
 
@@ -162,9 +162,9 @@ if __name__ == '__main__':
 
     print(t) # comodo per controllare la rappresentazione interna di Beamline Element
 
-    #t.ComputeFields(oeStart=s, oeEnd=d, Verbose = False)
+    t.ComputeFields(oeStart=s, oeEnd=d, Verbose = False)
 
-    #plot(d, 44)
+    plot(d, 44)
 
     plt.show()
 #%%
