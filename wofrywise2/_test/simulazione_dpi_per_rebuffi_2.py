@@ -53,13 +53,12 @@ if __name__ == '__main__':
     s_k = Optics.SourceGaussian(Lambda, Waist0)      # Kernel delle ottiche
     s_pd = Fundation.PositioningDirectives(            # Direttive di posizionamento
                         ReferTo = Fundation.PositioningDirectives.ReferTo.AbsoluteReference,
-                        XYCentre = [0,0],
-                        Angle = deg2rad(0))
-    s = OpticalElement(                                    # Optical Element (la cosa più vicina al pupolo Oasys)
-                        s_k, 
-                        PositioningDirectives = s_pd, 
-                        Name = 'source', IsSource = True)
-
+                        XYCentre = [0.0, 0.0],
+                        Angle = 0.0)
+    s = OpticalElement(s_k,
+                       PositioningDirectives = s_pd,
+                       Name = 'source',
+                       IsSource = True)
 
     # PM1A (h)
     #==========================================================================
@@ -76,6 +75,21 @@ if __name__ == '__main__':
     pm1a.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
     pm1a.ComputationSettings.NSamples = N
 
+    # PM1A (h)
+    #==========================================================================
+    pm1b_k = Optics.MirrorPlane(L=0.4, AngleGrazing = deg2rad(5.0) )
+    pm1b_pd = Fundation.PositioningDirectives(
+                                    ReferTo = 'upstream',
+                                    PlaceWhat = 'centre',
+                                    PlaceWhere = 'centre',
+                                    Distance = 6.2388)
+    pm1b = OpticalElement(pm1b_k,
+                          PositioningDirectives = pm1b_pd,
+                          Name = 'pm1b')
+    pm1b.ComputationSettings.Ignore = False          # Lo user decide di non simulare lo specchio ()
+    pm1b.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
+    pm1b.ComputationSettings.NSamples = N
+
     # KB(h)
     #==========================================================================
     f1 = 98
@@ -83,17 +97,12 @@ if __name__ == '__main__':
     GrazingAngle = deg2rad(2.5)
     L = 0.4 
 
-    #ob = Optics.Obstruction()
-
     kb_k = Optics.MirrorElliptic(f1 = f1, f2 = f2 , L= L, Alpha = GrazingAngle)
     kb_pd = Fundation.PositioningDirectives(
-#                        ReferTo = 'source',
-#                        PlaceWhat = 'upstream focus',
-#                        PlaceWhere = 'centre')
                         ReferTo = 'upstream',
                         PlaceWhat = 'centre',
                         PlaceWhere = 'centre',
-                        Distance=49.9099)
+                        Distance=44.9751)#49.9099)
     kb = OpticalElement(                                
                         kb_k, 
                         PositioningDirectives = kb_pd, 
@@ -144,10 +153,18 @@ if __name__ == '__main__':
 
     if not pm1a.ComputationSettings.Ignore: plot(pm1a, 11)
 
+    t.Append(pm1b)         # per ora lo lasciamo commentato, devo aggiustare una cosa che si è rotta 2 gg fa
+    t.RefreshPositions()
+
+    t.ComputationSettings.NPools = 5
+    t.ComputeFields(oeStart=pm1a, oeEnd=pm1b, Verbose = False)
+
+    if not pm1b.ComputationSettings.Ignore: plot(pm1b, 12)
+
     t.Append(kb)
     t.RefreshPositions()
 
-    t.ComputeFields(oeStart=pm1a, oeEnd=kb, Verbose = False)
+    t.ComputeFields(oeStart=pm1b, oeEnd=kb, Verbose = False)
 
     plot(kb, 22)
 

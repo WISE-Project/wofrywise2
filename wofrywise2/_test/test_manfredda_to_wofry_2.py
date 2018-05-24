@@ -60,8 +60,6 @@ if __name__ == '__main__':
     #==========================================================================
     Lambda = 32e-9
     Waist0 = Fermi.Waist0E(Lambda)
-    Waist0 = 0.00018006
-    print("Waist0", Waist0)
 
     s_k = Optics.SourceGaussian(Lambda, Waist0)      # Kernel delle ottiche
     s_pd = Fundation.PositioningDirectives(            # Direttive di posizionamento
@@ -82,7 +80,7 @@ if __name__ == '__main__':
                                     ReferTo = 'upstream',
                                     PlaceWhat = 'centre',
                                     PlaceWhere = 'centre',
-                                    Distance = 48090.1)
+                                    Distance = 48.0901)
 
     pm1a = WisePlaneMirror(name= 'pm1a',
                            plane_mirror=pm1a_k,
@@ -92,6 +90,22 @@ if __name__ == '__main__':
     pm1a.wise_optical_element.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
     pm1a.wise_optical_element.ComputationSettings.NSamples = N
 
+    # PM1B (h)
+    #==========================================================================
+    pm1b_k = Optics.MirrorPlane(L=0.4, AngleGrazing = deg2rad(5.0) )
+    pm1b_pd = Fundation.PositioningDirectives(
+                                    ReferTo = 'upstream',
+                                    PlaceWhat = 'centre',
+                                    PlaceWhere = 'centre',
+                                    Distance = 6.2388)
+    pm1b = WisePlaneMirror(name= 'pm1b',
+                           plane_mirror=pm1b_k,
+                           position_directives=pm1b_pd)
+
+    pm1b.wise_optical_element.ComputationSettings.Ignore = False          # Lo user decide di non simulare lo specchio ()
+    pm1b.wise_optical_element.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
+    pm1b.wise_optical_element.ComputationSettings.NSamples = N
+
     # KB(h)
     #==========================================================================
     f1 = 98
@@ -99,21 +113,19 @@ if __name__ == '__main__':
     GrazingAngle = deg2rad(2.5)
     L = 0.4
 
-    #ob = Optics.Obstruction()
-
-
     kb_k = Optics.MirrorElliptic(f1 = f1, f2 = f2 , L= L, Alpha = GrazingAngle)
     kb_pd = Fundation.PositioningDirectives(
-                        ReferTo = 'source',
-                        PlaceWhat = 'upstream focus',
-                        PlaceWhere = 'centre')
+                        ReferTo = 'upstream',
+                        PlaceWhat = 'centre',
+                        PlaceWhere = 'centre',
+                        Distance=44.9751)#49.9099)
 
     kb = WiseEllipticMirror(name='kb',
                             elliptic_mirror=kb_k,
                             position_directives=kb_pd)
 
     #----- Impostazioni KB
-    kb.wise_optical_element.CoreOptics.ComputationSettings.UseFigureError = True
+    kb.wise_optical_element.CoreOptics.ComputationSettings.UseFigureError = False
     kb.wise_optical_element.CoreOptics.ComputationSettings.UseRoughness = False
     kb.wise_optical_element.CoreOptics.ComputationSettings.UseSmallDisplacements = False # serve per traslare/ruotare l'EO
     kb.wise_optical_element.CoreOptics.SmallDisplacements.Rotation = deg2rad(0)
@@ -144,14 +156,15 @@ if __name__ == '__main__':
     d.wise_optical_element.ComputationSettings.UseCustomSampling = UseCustomSampling
     d.wise_optical_element.ComputationSettings.NSamples = N                          # come sopra. In teoria il campionamento può essere specificato elemento per elmeento
 
+
+
     beamline = WisePropagationElements()
     wavefront = WiseWavefront(wise_computation_results=None)
 
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=s))
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1a))
 
-    parameters = PropagationParameters(wavefront=wavefront,
-                                       propagation_elements=beamline)
+    parameters = PropagationParameters(wavefront=wavefront, propagation_elements=beamline)
     parameters.set_additional_parameters("single_propagation", True)
     parameters.set_additional_parameters("NPools", 5)
 
@@ -159,10 +172,19 @@ if __name__ == '__main__':
 
     if not pm1a.wise_optical_element.ComputationSettings.Ignore: plot(pm1a.wise_optical_element, 11)
 
+    beamline.add_beamline_element(WiseBeamlineElement(optical_element=pm1b))
+
+    parameters = PropagationParameters(wavefront=wavefront, propagation_elements=beamline)
+    parameters.set_additional_parameters("single_propagation", True)
+    parameters.set_additional_parameters("NPools", 5)
+
+    wavefront = PropagationManager.Instance().do_propagation(propagation_parameters=parameters, handler_name=WisePropagator.HANDLER_NAME)
+
+    if not pm1b.wise_optical_element.ComputationSettings.Ignore: plot(pm1b.wise_optical_element, 12)
+
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=kb))
 
-    parameters = PropagationParameters(wavefront=wavefront,
-                                       propagation_elements=beamline)
+    parameters = PropagationParameters(wavefront=wavefront, propagation_elements=beamline)
     parameters.set_additional_parameters("single_propagation", True)
     parameters.set_additional_parameters("NPools", 5)
 
@@ -173,8 +195,7 @@ if __name__ == '__main__':
     # DETECTOR
     beamline.add_beamline_element(WiseBeamlineElement(optical_element=d))
 
-    parameters = PropagationParameters(wavefront=wavefront,
-                                       propagation_elements=beamline)
+    parameters = PropagationParameters(wavefront=wavefront, propagation_elements=beamline)
     parameters.set_additional_parameters("single_propagation", True)
     parameters.set_additional_parameters("NPools", 5)
 
@@ -184,8 +205,7 @@ if __name__ == '__main__':
 
     print(beamline.get_wise_propagation_elements()) # comodo per controllare la rappresentazione interna di Beamline Element
 
-    parameters = PropagationParameters(wavefront=WiseWavefront(wise_computation_results=None),
-                                       propagation_elements=beamline)
+    parameters = PropagationParameters(wavefront=WiseWavefront(wise_computation_results=None), propagation_elements=beamline)
     parameters.set_additional_parameters("single_propagation", False)
     parameters.set_additional_parameters("NPools", 5)
 
