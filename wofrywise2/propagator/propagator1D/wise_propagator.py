@@ -4,13 +4,14 @@ import scipy.constants as codata
 angstroms_to_eV = codata.h*codata.c/codata.e*1e10
 
 from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
-from wofry.propagator.propagator import Propagator1D, PropagationParameters, PropagationElements, PropagationManager, InteractiveMode
+from wofry.propagator.propagator import Propagator1D, PropagationParameters, PropagationElements, PropagationManager, PropagationMode
 
 from wofrywise2.propagator.wavefront1D.wise_wavefront import WiseWavefront
 from wofrywise2.beamline.wise_beamline_element import WiseBeamlineElement
-from wofrywise2.beamline.optical_elements.wise_detector import WiseDetector
 
 from wiselib2 import Fundation, Optics
+
+WISE_APPLICATION = "WISEr"
 
 class WisePropagationElements(PropagationElements):
 
@@ -75,12 +76,12 @@ class WisePropagator(Propagator1D):
         oeEnd = optical_element_end.wise_optical_element
         oeStart = wise_propagation_elements.get_wise_propagation_element(-2 if parameters.get_additional_parameter("single_propagation") else 0)
 
-        if PropagationManager.Instance().get_interactive_mode() == InteractiveMode.ENABLED or parameters.get_additional_parameter("is_full_propagator"):
+        if PropagationManager.Instance().get_propagation_mode(WISE_APPLICATION) == PropagationMode.STEP_BY_STEP or parameters.get_additional_parameter("is_full_propagator"):
             beamline.RefreshPositions()
             beamline.ComputeFields(oeStart=oeStart, oeEnd=oeEnd, Verbose=False)
 
             result = WiseWavefront(wise_computation_results=oeEnd.ComputationResults)
-        elif PropagationManager.Instance().get_interactive_mode() == InteractiveMode.DISABLED:
+        elif PropagationManager.Instance().get_propagation_mode(WISE_APPLICATION) == PropagationMode.WHOLE_BEAMLINE:
             result = wavefront
         else:
             result = None
