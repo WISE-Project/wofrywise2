@@ -1,5 +1,5 @@
 WOFRY (Wave Optics FRamework in pYthon) for WISE 2 library
-======
+===========================================================
 
 Kernel classes for WOFRY - WISE 2 in python
 
