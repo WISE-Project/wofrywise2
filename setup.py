@@ -53,7 +53,7 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy',
     'syned',
-    'wofry',
+    'wofry>=1.0.12',
     'wiselib2'
 )
 
