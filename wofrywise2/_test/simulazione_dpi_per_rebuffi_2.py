@@ -75,6 +75,15 @@ if __name__ == '__main__':
     pm1a.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
     pm1a.ComputationSettings.NSamples = N
 
+    pm1a.CoreOptics.ComputationSettings.UseFigureError = True
+    pm1a.CoreOptics.ComputationSettings.UseRoughness = False
+    # aggiungo figure error
+    pm1a.CoreOptics.FigureErrorLoad(File = "/Users/admin/Oasys/Mirror_figure_error.dat",
+                  Step = 1e-3, # passo del file
+                  AmplitudeScaling = 1.0 # fattore di scala
+                  )
+
+
     # PM1A (h)
     #==========================================================================
     pm1b_k = Optics.MirrorPlane(L=0.4, AngleGrazing = deg2rad(5.0) )
@@ -89,6 +98,13 @@ if __name__ == '__main__':
     pm1b.ComputationSettings.Ignore = False          # Lo user decide di non simulare lo specchio ()
     pm1b.ComputationSettings.UseCustomSampling = UseCustomSampling # l'utente decide di impostare a mano il campionamento
     pm1b.ComputationSettings.NSamples = N
+    pm1b.CoreOptics.ComputationSettings.UseFigureError = True
+    pm1b.CoreOptics.ComputationSettings.UseRoughness = False
+    # aggiungo figure error
+    pm1b.CoreOptics.FigureErrorLoad(File = "/Users/admin/Oasys/Mirror_figure_error.dat",
+                  Step = 1e-3, # passo del file
+                  AmplitudeScaling = 1.0 # fattore di scala
+                  )
 
     # KB(h)
     #==========================================================================
@@ -109,7 +125,7 @@ if __name__ == '__main__':
                         Name = 'kb')
 
     #----- Impostazioni KB
-    kb.CoreOptics.ComputationSettings.UseFigureError = False
+    kb.CoreOptics.ComputationSettings.UseFigureError = True
     kb.CoreOptics.ComputationSettings.UseRoughness = False 
     kb.CoreOptics.ComputationSettings.UseSmallDisplacements = False # serve per traslare/ruotare l'EO
     kb.CoreOptics.SmallDisplacements.Rotation = deg2rad(0)
