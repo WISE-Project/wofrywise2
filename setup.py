@@ -11,7 +11,7 @@ except AttributeError:
 
 NAME = 'wofrywise2'
 
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 ISRELEASED = False
 
 DESCRIPTION = 'WOFRY (Wave Optics FRamework in pYthon) for WISE 2 library'
@@ -52,8 +52,8 @@ INSTALL_REQUIRES = (
     'setuptools',
     'numpy',
     'scipy',
-    'syned',
-    'wofry>=1.0.12',
+    'syned>=1.0.10',
+    'wofry>=1.0.15',
     'wiselib2'
 )
 

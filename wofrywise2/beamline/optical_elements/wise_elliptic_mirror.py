@@ -19,10 +19,10 @@ class WiseEllipticMirror(WiseOpticalElement):
         min_0 = 0.0 if position_directives.XYCentre is None else position_directives.XYCentre[1]
 
         super(WiseEllipticMirror, self).__init__(name=name,
-                                                 boundary_shape=Ellipse(min_ax_left=-0.5*elliptic_mirror.f1 + min_0,
-                                                                        min_ax_right=0.5*elliptic_mirror.f1 + min_0,
-                                                                        maj_ax_bottom=-0.5*elliptic_mirror.f2 + max_0,
-                                                                        maj_ax_top=-0.5*elliptic_mirror.f2 + max_0),
+                                                 boundary_shape=Ellipse(a_axis_min=-0.5*elliptic_mirror.f1 + min_0,
+                                                                        a_axis_max=0.5*elliptic_mirror.f1 + min_0,
+                                                                        b_axis_min=-0.5*elliptic_mirror.f2 + max_0,
+                                                                        b_axis_max=-0.5*elliptic_mirror.f2 + max_0),
                                                  wise_optical_element = OpticalElement(Element=elliptic_mirror,
                                                                                        PositioningDirectives=position_directives,
                                                                                        Name=name,
